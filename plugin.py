@@ -1,10 +1,11 @@
-# SMA Sunny Boy 1.5 Python Plugin v1.0 for Domoticz
+# SMA Sunny Boy 1.5 Python Plugin for Domoticz
 #
 # Author: merlot
 #
+# v2 moving from Custom sensor to General/kWh
 
 """
-<plugin key="SunnyBoy15" name="SMA Sunny Boy 1.5 Solar Inverter" author="merlot" version="1.0.0">
+<plugin key="SunnyBoy15" name="SMA Sunny Boy 1.5 Solar Inverter" author="merlot" version="2.0.0">
     <description>
         <h2>SMA Sunny Boy 1.5 Solar Inverter Plugin</h2><br/>
         <h3>Features</h3>
@@ -15,6 +16,14 @@
     <params>
         <param field="Address" label="IP Address" width="200px" required="true"/>
         <param field="Password" label="User group password" width="200px" required="true" password="true"/>
+        <param field="Mode3" label="Quering time in min" width="75px" required="true">
+            <options>
+                <option label="1 min" value="1"/>
+                <option label="3 min" value="3"/>
+                <option label="5 min" value="5" default="true"/>
+                <option label="10 min" value="10"/>
+            </options>
+        </param>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="True" value="Debug"/>
@@ -51,9 +60,8 @@ class BasePlugin:
        else:
             Domoticz.Debugging(0)
        if (len(Devices) == 0):
-         Domoticz.Device("pv watt", 1, "Custom", Options = { "Custom" : "1;W"}).Create()
-         Domoticz.Device("wh today", 2, "Custom", Options = { "Custom" : "1;Wh"}).Create()
-         Domoticz.Device("kwh total", 3, "Custom", Options = { "Custom" : "1;kWh"}).Create()
+         Domoticz.Device(Name="PV Generation", Unit=1, TypeName="General", Subtype=29).Create()
+         Domoticz.Device("kWh total", 2, "Custom", Options = { "Custom" : "1;kWh"}).Create()
        DumpConfigToLog()
        Domoticz.Log("Plugin is started.")
 # If Heartbeat>30 you'll get the error thread seems to have ended unexpectedly
@@ -87,7 +95,7 @@ class BasePlugin:
       headers = {'Content-Type': 'application/json', 'Accept-Charset': 'UTF-8'}
 
       self.lastPolled = self.lastPolled + 1
-      if (self.lastPolled > 3): self.lastPolled = 1
+      if (self.lastPolled > (3*int(Parameters["Mode3"]))): self.lastPolled = 1
       if (self.lastPolled == 1):
         try:
           r = requests.post(url, data=payload, headers=headers)
@@ -121,10 +129,9 @@ class BasePlugin:
 #              Domoticz.Log(str(sma_pv_watt))
 #              Domoticz.Log(str(sma_kwh_today))
 
-              Devices[1].Update(nValue=sma_pv_watt, sValue=str(sma_pv_watt))
-              Devices[2].Update(nValue=sma_kwh_today, sValue=str(sma_kwh_today))
+              Devices[1].Update(nValue=0, sValue=str(sma_pv_watt)+";"+str(sma_kwh_today))
               sValue="%.2f" % sma_kwh_total
-              Devices[3].Update(nValue=0, sValue=sValue.replace('.',','))
+              Devices[2].Update(nValue=0, sValue=sValue.replace('.',','))
 
 
 global _plugin
