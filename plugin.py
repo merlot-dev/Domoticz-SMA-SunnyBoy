@@ -10,12 +10,13 @@
         <h2>SMA Sunny Boy 1.5 Solar Inverter Plugin</h2><br/>
         <h3>Features</h3>
         <ul style="list-style-type:square">
-            <li>Register instant power and dayly generated energy</li>
+            <li>Register instant power and daily generated energy</li>
         </ul>
     </description>
     <params>
         <param field="Address" label="IP Address" width="200px" required="true"/>
         <param field="Password" label="User group password" width="200px" required="true" password="true"/>
+        <param field="Mode2" label="Serial ID SMA" width="200px" required="true"/>
         <param field="Mode3" label="Quering time in min" width="75px" required="true">
             <options>
                 <option label="1 min" value="1"/>
@@ -91,6 +92,7 @@ class BasePlugin:
     def onHeartbeat(self):
       Domoticz.Log("onHeartbeat called "+ str(self.lastPolled))
       ## Read SMA Inverter ##
+      Domoticz.Log(str(Parameters))
       url_base="https://" + Parameters["Address"] + "/dyn/"
       url=url_base + "login.json"
       payload = ('{"pass" : "' + Parameters["Password"] + '", "right" : "usr"}')
@@ -100,9 +102,9 @@ class BasePlugin:
       if (self.lastPolled > (3*int(Parameters["Mode3"]))): self.lastPolled = 1
       if (self.lastPolled == 1):
         try:
-          r = requests.post(url, data=payload, headers=headers, verify=verify)
-        except:
-          Domoticz.Log("Error accessing SMA inverter on "+Parameters["Address"])
+          r = requests.post(url, data=payload, headers=headers, verify=self.verify_key)
+        except Exception as e:
+          Domoticz.Log("Error accessing SMA inverter on "+Parameters["Address"] + " with error " + str(e))
         else:
           j = json.loads(r.text)
           try:
@@ -115,25 +117,25 @@ class BasePlugin:
             headers = {'Content-Type': 'application/json', 'Accept-Charset': 'UTF-8'}
 
             try:
-              r = requests.post(url, data=payload, headers=headers, verify=verify)
+              r = requests.post(url, data=payload, headers=headers, verify=self.verify_key)
             except:
               Domoticz.Log("No data from SMA inverter on "+Parameters["Address"])
             else:
               j = json.loads(r.text)
+              try:
+                  sma_data = j['result'][Parameters['Mode2']]
+              except:
+                  Domoticz.Log("Possible wrong serial. Expected serial: "+Parameters['Mode2'] + " response: " + r.text)
+              else:
+                  sma_pv_watt = sma_data['6100_40263F00']['1'][0]['val']
+                  if sma_pv_watt is None:
+                    sma_pv_watt = 0
+                  sma_kwh_today = sma_data['6400_00262200']['1'][0]['val']
+                  sma_kwh_total = sma_data['6400_00260100']['1'][0]['val']/1000
 
-              sma_pv_watt = j['result']['012F-730B00E6']['6100_40263F00']['1'][0]['val']
-              if sma_pv_watt is None:
-                sma_pv_watt = 0
-              sma_kwh_today = j['result']['012F-730B00E6']['6400_00262200']['1'][0]['val']
-              sma_kwh_total = j['result']['012F-730B00E6']['6400_00260100']['1'][0]['val']/1000
-
-#              Domoticz.Log(r.text)
-#              Domoticz.Log(str(sma_pv_watt))
-#              Domoticz.Log(str(sma_kwh_today))
-
-              Devices[1].Update(nValue=0, sValue=str(sma_pv_watt)+";"+str(sma_kwh_today))
-              sValue="%.2f" % sma_kwh_total
-              Devices[2].Update(nValue=0, sValue=sValue.replace('.',','))
+                  Devices[1].Update(nValue=0, sValue=str(sma_pv_watt)+";"+str(sma_kwh_today))
+                  sValue="%.2f" % sma_kwh_total
+                  Devices[2].Update(nValue=0, sValue=sValue.replace('.',','))
 
 
 global _plugin
