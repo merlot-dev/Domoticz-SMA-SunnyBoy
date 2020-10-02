@@ -7,17 +7,27 @@
 """
 <plugin key="SunnyBoy15" name="SMA Sunny Boy 1.5 Solar Inverter" author="merlot" version="2.0.0">
     <description>
-        <h2>SMA Sunny Boy 1.5 Solar Inverter Plugin</h2><br/>
+        <h2>SMA Sunny Boy Solar Inverter Plugin</h2><br/>
         <h3>Features</h3>
         <ul style="list-style-type:square">
+            <li>For Tripower
             <li>Register instant power and daily generated energy</li>
         </ul>
+        <h3>Credits</h3>
+        Forked from https://github.com/merlot-dev/Domoticz-SMA-SunnyBoy<br/>
+        <h3>Note</h3>
+        <ul style="list-style-type:square">
+        <li>The tri-power requires an HTTPS connection, but by default there is no SSL key. So the verification of
+         the key is ignored.
+        <li>If you do not know the Serial ID, just enter a fake one. In the error log you will see the serial coming back
+        </ul>
+
     </description>
     <params>
         <param field="Address" label="IP Address" width="200px" required="true"/>
         <param field="Password" label="User group password" width="200px" required="true" password="true"/>
         <param field="Mode2" label="Serial ID SMA" width="200px" required="true"/>
-        <param field="Mode3" label="Quering time in min" width="75px" required="true">
+        <param field="Mode3" label="Querying time in min" width="75px" required="true">
             <options>
                 <option label="1 min" value="1"/>
                 <option label="3 min" value="3"/>
