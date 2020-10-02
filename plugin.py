@@ -49,6 +49,8 @@ class BasePlugin:
     enabled = False
     lastPolled = 0
     lastResponse = 0
+    # if no proper SSL key on sunny boy, ignore SSL check
+    verify_key = False
 
     def __init__(self):
         return
@@ -89,7 +91,7 @@ class BasePlugin:
     def onHeartbeat(self):
       Domoticz.Log("onHeartbeat called "+ str(self.lastPolled))
       ## Read SMA Inverter ##
-      url_base="http://" + Parameters["Address"] + "/dyn/"
+      url_base="https://" + Parameters["Address"] + "/dyn/"
       url=url_base + "login.json"
       payload = ('{"pass" : "' + Parameters["Password"] + '", "right" : "usr"}')
       headers = {'Content-Type': 'application/json', 'Accept-Charset': 'UTF-8'}
@@ -98,7 +100,7 @@ class BasePlugin:
       if (self.lastPolled > (3*int(Parameters["Mode3"]))): self.lastPolled = 1
       if (self.lastPolled == 1):
         try:
-          r = requests.post(url, data=payload, headers=headers)
+          r = requests.post(url, data=payload, headers=headers, verify=verify)
         except:
           Domoticz.Log("Error accessing SMA inverter on "+Parameters["Address"])
         else:
@@ -113,7 +115,7 @@ class BasePlugin:
             headers = {'Content-Type': 'application/json', 'Accept-Charset': 'UTF-8'}
 
             try:
-              r = requests.post(url, data=payload, headers=headers)
+              r = requests.post(url, data=payload, headers=headers, verify=verify)
             except:
               Domoticz.Log("No data from SMA inverter on "+Parameters["Address"])
             else:
