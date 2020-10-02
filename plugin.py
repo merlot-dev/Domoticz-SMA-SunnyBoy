@@ -96,7 +96,6 @@ class BasePlugin:
     def onHeartbeat(self):
         Domoticz.Log("onHeartbeat called " + str(self.lastPolled))
         ## Read SMA Inverter ##
-        Domoticz.Log(str(Parameters))
         url_base = "https://" + Parameters["Address"] + "/dyn/"
         url = url_base + "login.json"
         payload = ('{"pass" : "' + Parameters["Password"] + '", "right" : "usr"}')
