@@ -10,16 +10,15 @@
         <h2>SMA Sunny Boy Solar Inverter Plugin</h2><br/>
         <h3>Features</h3>
         <ul style="list-style-type:square">
-            <li>For Tripower
+            <li>For Tripower</li>
             <li>Register instant power and daily generated energy</li>
         </ul>
         <h3>Credits</h3>
         Forked from https://github.com/merlot-dev/Domoticz-SMA-SunnyBoy<br/>
         <h3>Note</h3>
         <ul style="list-style-type:square">
-        <li>The tri-power requires an HTTPS connection, but by default there is no SSL key. So the verification of
-         the key is ignored.
-        <li>If you do not know the Serial ID, just enter a fake one. In the error log you will see the serial coming back
+        <li>The tri-power requires an HTTPS connection, but by default there is no SSL key. So the verification of the key is ignored.</li>
+        <li>If you do not know the Serial ID, just enter a fake one. In the error log you will see the serial coming back</li>
         </ul>
 
     </description>
@@ -122,8 +121,8 @@ class BasePlugin:
                 j = json.loads(r.text)
                 try:
                     sid = j['result']['sid']
-                except:
-                    Domoticz.Log("No response from SMA inverter on " + Parameters["Address"])
+                except Exception as e:
+                    Domoticz.Log("No response from SMA inverter on " + Parameters["Address"] + ".Result " + r.text + ". Error " + str(e))
                 else:
                     url = url_base + "getValues.json?sid=" + sid
                     payload = ('{"destDev":[],"keys":["6400_00260100","6400_00262200","6100_40263F00"]}')
